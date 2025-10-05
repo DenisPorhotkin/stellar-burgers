@@ -1,4 +1,4 @@
-import React, { FC, memo } from 'react';
+import { FC, memo } from 'react';
 import { Tab } from '@zlden/react-developer-burger-ui-components';
 
 import styles from './burger-ingredients.module.css';
@@ -27,18 +27,18 @@ export const BurgerIngredientsUI: FC<BurgerIngredientsUIProps> = memo(
               Булки
             </Tab>
             <Tab
-              value='main'
-              active={currentTab === 'main'}
-              onClick={onTabClick}
-            >
-              Начинки
-            </Tab>
-            <Tab
               value='sauce'
               active={currentTab === 'sauce'}
               onClick={onTabClick}
             >
               Соусы
+            </Tab>
+            <Tab
+              value='main'
+              active={currentTab === 'main'}
+              onClick={onTabClick}
+            >
+              Начинки
             </Tab>
           </ul>
         </nav>

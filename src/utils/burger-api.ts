@@ -40,6 +40,12 @@ export const fetchWithRefresh = async <T>(
   options: RequestInit
 ) => {
   try {
+    const token = getCookie('accessToken');
+    if (!options.headers) {
+      options.headers = {};
+    }
+    (options.headers as { [key: string]: string }).authorization =
+      `Bearer ${token}`;
     const res = await fetch(url, options);
     return await checkResponse<T>(res);
   } catch (err) {
@@ -48,6 +54,7 @@ export const fetchWithRefresh = async <T>(
       if (options.headers) {
         (options.headers as { [key: string]: string }).authorization =
           refreshData.accessToken;
+        `Bearer ${getCookie('accessToken')}`;
       }
       const res = await fetch(url, options);
       return await checkResponse<T>(res);

@@ -16,7 +16,9 @@ p {
 }
 
 .content {
-  overflow-y: scroll;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #8585ad #2f2f37;
 }
 
 .menu {
