@@ -1,4 +1,4 @@
-import React, { FC, memo } from 'react';
+import { FC, memo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   CurrencyIcon,
@@ -11,12 +11,14 @@ import { OrderCardUIProps } from './type';
 import { OrderStatus } from '@components';
 
 export const OrderCardUI: FC<OrderCardUIProps> = memo(
-  ({ orderInfo, maxIngredients, locationState }) => (
+  ({ orderInfo, maxIngredients, locationState, isHighlighted }) => (
     <Link
       to={orderInfo.number.toString()}
       relative='path'
       state={locationState}
-      className={`p-6 mb-4 mr-2 ${styles.order}`}
+      className={`p-6 mb-4 mr-2 ${styles.order} ${
+        isHighlighted ? styles.highlighted : ''
+      }`}
     >
       <div className={styles.order_info}>
         <span className={`text text_type_digits-default ${styles.number}`}>

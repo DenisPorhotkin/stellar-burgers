@@ -8,11 +8,12 @@
 
 .elements {
   min-height: 100px;
-
-  overflow-y: scroll;
+  overflow-y: auto;
   list-style-type: none;
   margin: 0;
   padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: #8585ad #2f2f37;
 }
 
 .total {

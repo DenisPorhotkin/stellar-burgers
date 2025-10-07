@@ -2,6 +2,23 @@
   margin: 0 auto;
   width: 640px;
 }
+
+/* Стили для отдельной страницы */
+.page {
+  padding-top: 100px;
+}
+
+/* Стили для модального окна */
+.modal {
+  padding-top: 0;
+}
+
+/* Номер заказа (для страницы) */
+.orderNumber {
+  text-align: center;
+  padding-bottom: 50px;
+}
+
 .number {
   text-align: center;
 }
@@ -55,6 +72,8 @@
   padding: 0;
   overflow-y: auto;
   max-height: 320px;
+  scrollbar-width: thin;
+  scrollbar-color: #8585ad #2f2f37;
 }
 
 .list::-webkit-scrollbar {
