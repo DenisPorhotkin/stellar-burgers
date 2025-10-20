@@ -2,4 +2,6 @@ node_modules
 .env
 .idea
 dist
-coverage/
+coverage
+.coverage
+*.lcov
