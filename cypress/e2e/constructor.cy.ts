@@ -1,148 +1,135 @@
+import { 
+  IngredientSelectors, 
+  ConstructorSelectors, 
+  ModalSelectors,
+  TextConstants,
+  IngredientType,
+  CloseMethod
+} from '../support/constants';
+
 describe('Burger Constructor', () => {
   beforeEach(() => {
     // Перехватываем все API запросы
     cy.intercept('GET', 'api/ingredients', { fixture: 'ingredients.json' }).as('getIngredients');
-    cy.intercept('GET', 'api/auth/user', { fixture: 'user.json' }).as('getUser');
     cy.intercept('POST', 'api/orders', { fixture: 'order.json' }).as('createOrder');
     
-    // Устанавливаем фейковые токены
-    cy.setCookie('accessToken', 'fake-access-token');
-    window.localStorage.setItem('refreshToken', 'fake-refresh-token');
+    // Настраиваем авторизацию
+    cy.setupAuth();
     
     cy.visit('/');
     cy.wait('@getIngredients');
-    cy.contains('Соберите бургер').should('be.visible');
+    cy.contains(TextConstants.BUILD_BURGER).should('be.visible');
   });
 
   afterEach(() => {
     // Очищаем токены после тестов
-    cy.clearCookie('accessToken');
-    window.localStorage.removeItem('refreshToken');
+    cy.clearAuth();
   });
 
   describe('Функциональность ингредиентов', () => {
     it('должен отображать список ингредиентов', () => {      
-      cy.get('[data-testid="ingredient-bun"]').should('exist');
-      cy.get('[data-testid="ingredient-main"]').should('exist');
-      cy.get('[data-testid="ingredient-sauce"]').should('exist');
+      cy.checkIngredientsExist();
     });
     
     it('должен добавить булочку в конструктор', () => {
-      cy.get('[data-testid="ingredient-bun"]').first().within(() => {
-        cy.get('.common_button').contains('Добавить').click();
-      });
-      cy.get('[data-testid="constructor-bun-top"]').should('exist');
-      cy.get('[data-testid="constructor-bun-bottom"]').should('exist');
-      cy.get('[data-testid="no-bun-top"]').should('not.exist');
-      cy.get('[data-testid="no-bun-bottom"]').should('not.exist');
+      cy.addIngredient(IngredientType.BUN);
+      
+      cy.get(IngredientSelectors.CONSTRUCTOR_BUN_TOP).should('exist');
+      cy.get(IngredientSelectors.CONSTRUCTOR_BUN_BOTTOM).should('exist');
+      cy.get(ConstructorSelectors.NO_BUN_TOP).should('not.exist');
+      cy.get(ConstructorSelectors.NO_BUN_BOTTOM).should('not.exist');
     });
 
     it('должен добавить ингредиент в конструктор', () => {
-      cy.get('[data-testid="ingredient-main"]').first().within(() => {
-        cy.get('.common_button').contains('Добавить').click();
-      });      
-      cy.get('[data-testid="constructor-ingredient"]').should('exist');
-      cy.get('[data-testid="no-ingredients"]').should('not.exist');
+      cy.addIngredient(IngredientType.MAIN);
+      
+      cy.get(IngredientSelectors.CONSTRUCTOR_INGREDIENT).should('exist');
+      cy.get(ConstructorSelectors.NO_INGREDIENTS).should('not.exist');
     });
 
     it('должен добавить соус в конструктор', () => {
-      cy.get('[data-testid="ingredient-sauce"]').first().within(() => {
-        cy.get('.common_button').contains('Добавить').click();
-      });      
-      cy.get('[data-testid="constructor-ingredient"]').should('exist');
-      cy.get('[data-testid="no-ingredients"]').should('not.exist');
+      cy.addIngredient(IngredientType.SAUCE);
+      
+      cy.get(IngredientSelectors.CONSTRUCTOR_INGREDIENT).should('exist');
+      cy.get(ConstructorSelectors.NO_INGREDIENTS).should('not.exist');
     });
     
     it('должен правильно рассчитать общую стоимость', () => {
-      cy.get('[data-testid="ingredient-bun"]').first().within(() => {
-        cy.get('.common_button').contains('Добавить').click();
-      });
-      cy.get('[data-testid="ingredient-main"]').first().within(() => {
-        cy.get('.common_button').contains('Добавить').click();
-      });        
-      cy.get('[data-testid="total-price"]').should('not.contain', '0');
-      cy.get('[data-testid="order-button"]').should('not.be.disabled');
+      cy.addIngredient(IngredientType.BUN);
+      cy.addIngredient(IngredientType.MAIN);
+      
+      cy.get(ConstructorSelectors.TOTAL_PRICE).should('not.contain', '0');
+      cy.get(ConstructorSelectors.ORDER_BUTTON).should('not.be.disabled');
     });
   });
 
   describe('Модальные окна', () => {
     it('должен открывать и закрывать модальное окно ингредиента', () => {
-      cy.get('[data-testid=ingredient-main]').first().click();
+      cy.openIngredientModal(IngredientType.MAIN);
       
-      cy.get('[data-testid=modal]').should('exist');
-      cy.contains('Детали ингредиента').should('exist');
-      cy.contains('Биокотлета из марсианской Магнолии').should('exist');
+      cy.get(ModalSelectors.MODAL).should('exist');
+      cy.contains(TextConstants.INGREDIENT_DETAILS).should('exist');
+      cy.contains(TextConstants.MARS_PATTY).should('exist');
       
-      cy.get('[data-testid=modal-close-button]').click();
-      cy.get('[data-testid=modal]').should('not.exist');
+      cy.closeModal(CloseMethod.BUTTON);
     });
 
+    it('должен закрыть модальное окно по нажатию клавиши Esc', () => {
+      cy.openIngredientModal(IngredientType.MAIN);
+      cy.closeModal(CloseMethod.ESC);
+    });
+    
     it('должен закрыть модальное окно щелчком мыши по оверлею', () => {
-      cy.get('[data-testid=ingredient-main]').first().click();
-      
-      cy.get('[data-testid=modal]').should('exist');
-
-      cy.get('[data-testid=modal-overlay]').click({ force: true });
-      cy.get('[data-testid=modal]').should('not.exist');
-    });
+      cy.openIngredientModal(IngredientType.MAIN);
+      cy.closeModal(CloseMethod.OVERLAY);
+    });    
 
     it('должны отображать правильные данные об ингредиентах в модальном окне', () => {
-      cy.get('[data-testid=ingredient-main]').first().click();
+      cy.openIngredientModal(IngredientType.MAIN);
       
-      cy.contains('Биокотлета из марсианской Магнолии').should('exist');
+      cy.contains(TextConstants.MARS_PATTY).should('exist');
       cy.contains('420').should('exist'); // Белки
       cy.contains('142').should('exist'); // Жиры
       cy.contains('242').should('exist'); // Углеводы
       cy.contains('4242').should('exist'); // Калории
+      
+      cy.closeModal();
     });
   });
 
   describe('Создание заказа', () => {
-
     it('должен успешно создать заказ', () => {
-      cy.get('[data-testid="ingredient-bun"]').first().within(() => {
-        cy.get('.common_button').contains('Добавить').click();
-      });
-      cy.get('[data-testid="ingredient-main"]').first().within(() => {
-        cy.get('.common_button').contains('Добавить').click();
-      });
+      cy.createOrder([IngredientType.BUN, IngredientType.MAIN]);
       
-      cy.get('[data-testid=order-button]').click();
-      cy.get('[data-testid=order-details]').should('exist');
-      cy.contains('12345').should('exist');
-      cy.contains('идентификатор заказа').should('exist');
+      cy.contains(TextConstants.ORDER_ID).should('exist');
+      cy.contains(TextConstants.ORDER_ID_TEXT).should('exist');
       
-      cy.get('[data-testid=modal-close-button]').click();
-      cy.get('[data-testid=order-details]').should('not.exist');
+      cy.closeModal();
       
-      cy.get('[data-testid=constructor-bun-top]').should('not.exist');
-      cy.get('[data-testid=constructor-ingredient]').should('not.exist');
+      // Проверяем, что конструктор очистился после заказа
+      cy.get(IngredientSelectors.CONSTRUCTOR_BUN_TOP).should('not.exist');
+      cy.get(IngredientSelectors.CONSTRUCTOR_INGREDIENT).should('not.exist');
     });
 
     it('должен перенаправлять при клике на заказ без авторизации', () => {
-      // Очищаем токены
-      cy.clearCookie('accessToken');
-      window.localStorage.removeItem('refreshToken');
-    
-      // Перехватываем запрос пользователя
+      // Очищаем токены и перехватываем запрос с ошибкой
+      cy.clearAuth();
       cy.intercept('GET', 'api/auth/user', { statusCode: 401 }).as('getUserUnauthorized');
     
       // Перезагружаем страницу
       cy.reload();
       cy.wait(1000);
     
-      cy.get('[data-testid="ingredient-bun"]').first().within(() => {
-        cy.get('.common_button').contains('Добавить').click();
-      });
-      cy.get('[data-testid="ingredient-main"]').first().within(() => {
-        cy.get('.common_button').contains('Добавить').click();
-      });
-      cy.get('[data-testid="order-button"]').click();
+      // Добавляем ингредиенты и пытаемся создать заказ
+      cy.addIngredient(IngredientType.BUN);
+      cy.addIngredient(IngredientType.MAIN);
+      cy.get(ConstructorSelectors.ORDER_BUTTON).click();
+      
+      // Проверяем перенаправление на страницу логина
       cy.url().should('include', '/login');
-
-      cy.contains('Вход').should('exist');
-      cy.contains('E-mail').should('exist');
-      cy.contains('Пароль').should('exist');
+      cy.contains(TextConstants.LOGIN_TITLE).should('exist');
+      cy.contains(TextConstants.EMAIL_LABEL).should('exist');
+      cy.contains(TextConstants.PASSWORD_LABEL).should('exist');
     });
   });
 });
