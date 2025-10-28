@@ -12,27 +12,41 @@ import { TBurgerIngredientUIProps } from './type';
 
 export const BurgerIngredientUI: FC<TBurgerIngredientUIProps> = memo(
   ({ ingredient, count, handleAdd, locationState }) => {
-    const { image, price, name, _id } = ingredient;
+    const { image, price, name, _id, type } = ingredient;
 
     return (
-      <li className={styles.container}>
+      <li className={styles.container} data-testid={`ingredient-${type}`}>
         <Link
           className={styles.article}
           to={`/ingredients/${_id}`}
           state={locationState}
         >
           {count && <Counter count={count} />}
-          <img className={styles.img} src={image} alt='картинка ингредиента.' />
-          <div className={`${styles.cost} mt-2 mb-2`}>
+          <img
+            className={styles.img}
+            src={image}
+            alt='картинка ингредиента.'
+            data-testid={`ingredient-image-${_id}`}
+          />
+          <div
+            className={`${styles.cost} mt-2 mb-2`}
+            data-testid={`ingredient-price-${_id}`}
+          >
             <p className='text text_type_digits-default mr-2'>{price}</p>
             <CurrencyIcon type='primary' />
           </div>
-          <p className={`text text_type_main-default ${styles.text}`}>{name}</p>
+          <p
+            className={`text text_type_main-default ${styles.text}`}
+            data-testid={`ingredient-name-${_id}`}
+          >
+            {name}
+          </p>
         </Link>
         <AddButton
           text='Добавить'
           onClick={handleAdd}
           extraClass={`${styles.addButton} mt-8`}
+          data-testid={`add-button-${_id}`}
         />
       </li>
     );
